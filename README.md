@@ -70,7 +70,7 @@ open http://localhost:3000
 ## Architecture
 
 <p align="center">
-  <img src="images/architecture.svg" alt="Egressor Architecture" width="850"/>
+  <img src="images/architecture.svg" alt="Egressor Architecture" width="750"/>
 </p>
 
 ## API
