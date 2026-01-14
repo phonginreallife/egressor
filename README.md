@@ -1,211 +1,214 @@
-# Egressor
+<p align="center">
+  <img src="images/egressor.png" alt="Egressor Dashboard" width="800"/>
+</p>
 
-**Data Transfer Intelligence Platform**
+<h1 align="center">Egressor</h1>
 
-Detect, explain, and reduce unexpected or excessive data transfer in distributed systems (Kubernetes / cloud / services).
+<p align="center">
+  <strong>Data Transfer Intelligence Platform</strong><br>
+  Detect, explain, and reduce unexpected data transfer costs in Kubernetes
+</p>
 
-## 🎯 What Egressor Solves
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#architecture">Architecture</a> •
+  <a href="#api">API</a> •
+  <a href="#configuration">Configuration</a>
+</p>
 
-- **Hidden egress costs** - Understand exactly where your cloud bill is going
-- **Noisy network behavior** - Identify unnecessary service-to-service communication
-- **Hard-to-trace data movement** - Visualize cross-service, cross-region, cross-AZ traffic
-- **"Why is this suddenly expensive / slow?"** - Get AI-powered explanations for anomalies
+---
 
-## 🧱 Core Capabilities
+## The Problem
 
-### 1️⃣ Data Transfer Tracing
+Cloud egress bills are unpredictable. Services talk to each other in ways you didn't expect. Traffic spikes happen overnight. Nobody knows why costs tripled last month.
 
-Collect and correlate:
-- Pod ↔ Pod traffic
-- Pod ↔ External endpoints
-- Service ↔ Service communication
-- Region ↔ Region transfers
+**Egressor answers:**
+- *Where* is data moving?
+- *How much* does each flow cost?
+- *Why* did costs spike?
+- *What* can we optimize?
 
-### 2️⃣ Behavior Profiling
+## Features
 
-Build baselines and detect:
-- **Spikes** - Sudden traffic increases
-- **Slow burns** - Gradual increases over time
-- **New endpoints** - Previously unseen destinations
-- **Leaks** - Continuous low-volume unexpected transfers
+| Feature | Description |
+|---------|-------------|
+| **eBPF Traffic Collection** | Zero-overhead kernel-level flow capture |
+| **Real-time Visualization** | Live transfer graph with 2-second updates |
+| **Cost Attribution** | Map traffic → AWS pricing → workload |
+| **Anomaly Detection** | Automatic spike, slow-burn, and leak detection |
+| **Claude AI Analysis** | Natural language investigation and optimization |
+| **Kubernetes Native** | Pod, service, namespace attribution out of the box |
 
-### 3️⃣ Cost Attribution
-
-Map traffic → cloud pricing → who caused it
-
-### 4️⃣ Claude as the Intelligence Layer
-
-Example queries:
-- *"Why did our egress cost triple yesterday?"*
-- *"Which services changed behavior after version 2.1?"*
-- *"Show me the top 5 unnecessary transfers."*
-
-## 🏗️ Architecture
-
-```
-┌─────────────────┐
-│  Agents (eBPF)  │  ← Per-node DaemonSet
-│   Go + eBPF/C   │
-└────────┬────────┘
-         │ gRPC/OTel
-         ▼
-┌─────────────────┐
-│    Collector    │  ← Event ingestion
-│       Go        │
-└────────┬────────┘
-         │
-    ┌────┴────┐
-    ▼         ▼
-┌───────┐ ┌───────┐
-│ Click │ │Postgre│  ← Storage
-│ House │ │  SQL  │
-└───┬───┘ └───────┘
-    │
-    ▼
-┌─────────────────┐
-│  Graph Engine   │  ← Analytics
-│  Cost Engine    │
-│ Baseline Engine │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Claude Service  │  ← AI Intelligence
-│    (Anthropic)  │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   API Server    │  ← REST + gRPC
-│       Go        │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│    Frontend     │  ← Dashboard
-│    Next.js      │
-└─────────────────┘
-```
-
-## 📁 Project Structure
-
-```
-egressor/
-├── src/                        # Backend (Go)
-│   ├── cmd/                    # Application entrypoints
-│   │   ├── agent/              # Node agent
-│   │   ├── collector/          # Event collector
-│   │   └── api/                # API server
-│   ├── ebpf/                   # eBPF programs (C)
-│   │   ├── flow_tracker.c
-│   │   └── egress_monitor.c
-│   ├── pkg/                    # Public packages
-│   │   ├── types/              # Shared data types
-│   │   └── ebpf/               # eBPF loader
-│   └── internal/               # Private packages
-│       ├── agent/
-│       ├── collector/
-│       ├── storage/
-│       ├── engine/
-│       ├── intelligence/
-│       └── api/
-├── frontend/                   # Next.js dashboard
-├── deploy/                     # Deployment configs
-│   ├── docker/
-│   └── helm/
-├── docs/                       # Documentation
-├── go.mod                      # Go module
-├── Makefile                    # Build automation
-└── README.md
-```
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Docker & Docker Compose
-- Go 1.22+
-- Node.js 20+
-- kubectl (for Kubernetes deployment)
-
-### Development Setup
+## Quick Start
 
 ```bash
-# Clone the repository
-git clone https://github.com/egressor/egressor
+# Clone
+git clone https://github.com/phonginreallife/egressor
 cd egressor
 
-# Start development databases
-make dev-db
+# Start all services (requires Docker)
+docker-compose -f deploy/docker-compose.dev.yml up -d
 
-# Build all binaries
-make build
+# Generate mock data for testing
+make mock-realtime
 
-# Run the collector
-./bin/egressor-collector --debug
-
-# Run the API server (in another terminal)
-./bin/egressor-api --debug
-
-# Start the frontend (in another terminal)
-cd frontend && npm install && npm run dev
-```
-
-### Docker Compose
-
-```bash
-# Start everything
-docker-compose -f deploy/docker/docker-compose.dev.yml up -d
-
-# Access the UI
+# Open dashboard
 open http://localhost:3000
 ```
 
-### Kubernetes (Helm)
+**Services:**
+| Service | URL | Description |
+|---------|-----|-------------|
+| Dashboard | http://localhost:3000 | Next.js UI |
+| API | http://localhost:8080 | Go REST API |
+| Intelligence | http://localhost:8090 | Python Claude service |
+| ClickHouse | localhost:9000 | Analytics DB |
+| PostgreSQL | localhost:5432 | Metadata DB |
 
-```bash
-helm install egressor deploy/helm/egressor \
-  --namespace egressor \
-  --create-namespace
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      Frontend (Next.js)                          │
+│                    Real-time Dashboard                           │
+└─────────────────────────────┬───────────────────────────────────┘
+                              │
+        ┌─────────────────────┴─────────────────────┐
+        │                                           │
+        ▼                                           ▼
+┌───────────────────┐                 ┌───────────────────────┐
+│   Go API Server   │───── proxy ────▶│  Python Intelligence  │
+│    (Port 8080)    │                 │     (Port 8090)       │
+│                   │                 │   Claude AI Layer     │
+└─────────┬─────────┘                 └───────────────────────┘
+          │
+          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     Go Data Engines                              │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐        │
+│  │ Collector│  │  Graph   │  │   Cost   │  │ Baseline │        │
+│  │          │  │  Engine  │  │  Engine  │  │  Engine  │        │
+│  └────┬─────┘  └──────────┘  └──────────┘  └──────────┘        │
+└───────┼─────────────────────────────────────────────────────────┘
+        │
+        ▼
+┌───────────────────┐     ┌───────────────────┐
+│    ClickHouse     │     │    PostgreSQL     │
+│   (Analytics)     │     │    (Metadata)     │
+└───────────────────┘     └───────────────────┘
+        ▲
+        │ gRPC/OTel
+┌───────┴───────────────────────────────────────────────────────┐
+│                    Agents (eBPF + Go)                          │
+│                  Per-node DaemonSet                            │
+└───────────────────────────────────────────────────────────────┘
 ```
 
-## 📊 API Endpoints
+## Project Structure
+
+```
+egressor/
+├── src/                      # Go Backend
+│   ├── cmd/                  # Entrypoints (agent, collector, api)
+│   ├── ebpf/                 # eBPF C programs
+│   ├── pkg/                  # Public Go packages
+│   ├── internal/             # Private Go packages
+│   └── intelligence/         # Python Claude service
+├── frontend/                 # Next.js dashboard
+├── deploy/                   # Docker Compose, Helm
+├── scripts/                  # Utilities
+├── go.mod
+└── Makefile
+```
+
+## API
 
 ### Graph
-- `GET /api/v1/graph` - Full transfer graph
-- `GET /api/v1/graph/stats` - Graph statistics
-- `GET /api/v1/graph/service/{service}` - Service subgraph
-- `GET /api/v1/graph/top-talkers` - Top services by bytes sent
+```bash
+GET /api/v1/graph              # Full transfer graph
+GET /api/v1/graph/stats        # Node/edge counts, bytes
+GET /api/v1/graph/top-edges    # Highest traffic flows
+```
 
 ### Costs
-- `GET /api/v1/costs/summary` - Cost summary
-- `GET /api/v1/costs/attribution` - Cost attribution by service
+```bash
+GET /api/v1/costs/summary      # Total, egress, cross-region costs
+GET /api/v1/costs/attribution  # Cost by service
+```
 
 ### Anomalies
-- `GET /api/v1/anomalies` - All anomalies
-- `GET /api/v1/anomalies/active` - Active anomalies
+```bash
+GET /api/v1/anomalies          # All detected anomalies
+GET /api/v1/anomalies/active   # Currently active
+POST /api/v1/anomalies/{id}/acknowledge
+```
 
 ### Intelligence (Claude)
-- `POST /api/v1/intelligence/analyze` - General analysis
-- `POST /api/v1/intelligence/ask` - Ask a question
+```bash
+POST /api/v1/intelligence/analyze   # System analysis
+POST /api/v1/intelligence/ask       # Ask anything
+```
 
-## 🔧 Configuration
+### Testing
+```bash
+POST /api/v1/mock/generate?count=100  # Generate mock flows
+POST /api/v1/mock/anomaly             # Generate anomaly
+DELETE /api/v1/mock/reset             # Clear mock data
+```
 
-### Environment Variables
+## Configuration
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `FLOWSCOPE_CLICKHOUSE_DSN` | ClickHouse connection string | `clickhouse://localhost:9000/egressor` |
-| `FLOWSCOPE_POSTGRES_DSN` | PostgreSQL connection string | `postgres://localhost:5432/egressor` |
-| `FLOWSCOPE_ANTHROPIC_API_KEY` | Anthropic API key for Claude | (none) |
-| `FLOWSCOPE_DEBUG` | Enable debug logging | `false` |
+| `EGRESSOR_CLICKHOUSE_DSN` | ClickHouse connection | `clickhouse://localhost:9000/egressor` |
+| `EGRESSOR_POSTGRES_DSN` | PostgreSQL connection | `postgres://localhost:5432/egressor` |
+| `EGRESSOR_ANTHROPIC_API_KEY` | Claude API key | - |
+| `EGRESSOR_DEBUG` | Debug logging | `false` |
 
-## 🔐 Security
+## 🛠️ Development
 
-- **eBPF requires privileged access** - Agent runs with elevated permissions
-- **No deep packet inspection** - Only metadata, never payload content
-- **Claude receives summaries only** - Never raw traffic data
+```bash
+# Build Go binaries
+make build
 
-## 📜 License
+# Run tests
+make test-go
+
+# Generate mock data (runs continuously)
+make mock-realtime
+
+# Single mock data batch
+make mock-data
+
+# View logs
+make dev-logs
+```
+
+## Security
+
+- **eBPF requires privileged access** — Agent runs as DaemonSet with elevated permissions
+- **Metadata only** — No deep packet inspection, never captures payload content  
+- **Claude receives summaries** — Raw traffic data never leaves your infrastructure
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Traffic Collection | eBPF (C) + Go |
+| Backend | Go 1.22, Chi router |
+| Analytics DB | ClickHouse |
+| Metadata DB | PostgreSQL |
+| AI/Intelligence | Python, Claude API |
+| Frontend | Next.js 14, TypeScript, Tailwind |
+| Visualization | Recharts, Custom SVG |
+
+## License
 
 Apache 2.0
+
+---
+
+<p align="center">
+  Built with ☕ and Claude
+</p>
