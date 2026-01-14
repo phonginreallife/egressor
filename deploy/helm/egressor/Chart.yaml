@@ -1,0 +1,33 @@
+apiVersion: v2
+name: egressor
+description: FlowScope - Data Transfer Intelligence Platform
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+
+keywords:
+  - kubernetes
+  - observability
+  - network
+  - cost-optimization
+  - ebpf
+
+home: https://github.com/egressor/egressor
+
+maintainers:
+  - name: FlowScope Team
+    email: team@egressor.io
+
+dependencies:
+  - name: clickhouse
+    version: "4.1.0"
+    repository: https://charts.bitnami.com/bitnami
+    condition: clickhouse.enabled
+  - name: postgresql
+    version: "14.0.0"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: redis
+    version: "18.0.0"
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled

@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --flow-glow: 0 0 20px rgba(16, 185, 129, 0.3);
+  --egress-glow: 0 0 20px rgba(249, 115, 22, 0.3);
+  --danger-glow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+body {
+  background: linear-gradient(135deg, #0a0e14 0%, #0f1419 50%, #0a0e14 100%);
+  min-height: 100vh;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #121820;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
+}
+
+/* Grid pattern background */
+.grid-pattern {
+  background-image: 
+    linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Glow effects */
+.glow-green {
+  box-shadow: var(--flow-glow);
+}
+
+.glow-orange {
+  box-shadow: var(--egress-glow);
+}
+
+.glow-red {
+  box-shadow: var(--danger-glow);
+}
+
+/* Data flow animation for edges */
+@keyframes dataFlow {
+  0% { stroke-dashoffset: 20; }
+  100% { stroke-dashoffset: 0; }
+}
+
+.animate-data-flow {
+  animation: dataFlow 1s linear infinite;
+  stroke-dasharray: 5 5;
+}
+
+/* Pulse for anomalies */
+@keyframes anomalyPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-anomaly {
+  animation: anomalyPulse 2s ease-in-out infinite;
+}
+
+/* Stats card hover */
+.stat-card {
+  @apply bg-flow-surface border border-flow-border rounded-lg p-6 transition-all duration-300;
+}
+
+.stat-card:hover {
+  @apply border-flow-accent/30;
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.1);
+}
+
+/* Terminal-style container */
+.terminal {
+  @apply bg-black/50 border border-flow-border rounded-lg overflow-hidden;
+}
+
+.terminal-header {
+  @apply flex items-center gap-2 px-4 py-2 bg-flow-surface border-b border-flow-border;
+}
+
+.terminal-dot {
+  @apply w-3 h-3 rounded-full;
+}
+
+/* Graph node styles */
+.node-internal {
+  @apply fill-flow-internal stroke-flow-internal/50;
+}
+
+.node-external {
+  @apply fill-flow-egress stroke-flow-egress/50;
+}
+
+.edge-egress {
+  @apply stroke-flow-egress;
+}
+
+.edge-internal {
+  @apply stroke-flow-accent;
+}
+
+.edge-cross-region {
+  @apply stroke-flow-warning;
+}

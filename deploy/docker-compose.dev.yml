@@ -1,0 +1,140 @@
+version: '3.8'
+
+services:
+  # ClickHouse for flow analytics
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.1
+    container_name: egressor-clickhouse
+    ports:
+      - "9000:9000"
+      - "8123:8123"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    environment:
+      - CLICKHOUSE_DB=egressor
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=egressor
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL for metadata
+  postgres:
+    image: postgres:16-alpine
+    container_name: egressor-postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=egressor
+      - POSTGRES_USER=egressor
+      - POSTGRES_PASSWORD=egressor
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U egressor"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and pub/sub
+  redis:
+    image: redis:7-alpine
+    container_name: egressor-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FlowScope Collector (Go)
+  collector:
+    build:
+      context: ..
+      dockerfile: src/Dockerfile
+      args:
+        SERVICE: collector
+    container_name: egressor-collector
+    ports:
+      - "4317:4317"
+      - "8081:8080"
+    environment:
+      - FLOWSCOPE_CLICKHOUSE_DSN=clickhouse://clickhouse:9000/egressor?username=default&password=egressor
+      - FLOWSCOPE_POSTGRES_DSN=postgres://egressor:egressor@postgres:5432/egressor
+      - FLOWSCOPE_DEBUG=true
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  # FlowScope API (Go)
+  api:
+    build:
+      context: ..
+      dockerfile: src/Dockerfile
+      args:
+        SERVICE: api
+    container_name: egressor-api
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    environment:
+      - FLOWSCOPE_CLICKHOUSE_DSN=clickhouse://clickhouse:9000/egressor?username=default&password=egressor
+      - FLOWSCOPE_POSTGRES_DSN=postgres://egressor:egressor@postgres:5432/egressor
+      - FLOWSCOPE_INTELLIGENCE_URL=http://intelligence:8090
+      - FLOWSCOPE_CORS_ORIGINS=http://localhost:3000
+      - FLOWSCOPE_DEBUG=true
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  # FlowScope Intelligence Service (Python)
+  intelligence:
+    build:
+      context: ../src/intelligence
+      dockerfile: Dockerfile
+    container_name: egressor-intelligence
+    ports:
+      - "8090:8090"
+    environment:
+      - FLOWSCOPE_API_URL=http://api:8080
+      - FLOWSCOPE_ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - FLOWSCOPE_DEBUG=true
+    depends_on:
+      - api
+
+  # FlowScope Frontend (Next.js)
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: egressor-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - API_URL=http://api:8080
+      - INTELLIGENCE_URL=http://intelligence:8090
+    depends_on:
+      - api
+      - intelligence
+
+volumes:
+  clickhouse_data:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: egressor-network

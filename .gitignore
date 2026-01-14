@@ -1,0 +1,70 @@
+# Binaries
+bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Go
+*.test
+coverage.out
+coverage.html
+vendor/
+
+# eBPF generated files
+*_bpfel.go
+*_bpfeb.go
+*.o
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+.python-version
+
+# Node/Frontend
+node_modules/
+.next/
+out/
+.DS_Store
+*.pem
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
+
+# Docker
+.docker/
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test
+*.test
+*.spec
+
+# Temporary
+tmp/
+temp/
+*.tmp

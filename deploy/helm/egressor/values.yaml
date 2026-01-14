@@ -1,0 +1,194 @@
+# FlowScope Helm Chart Values
+
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+
+# Agent configuration (DaemonSet)
+agent:
+  enabled: true
+  image:
+    repository: egressor/agent
+    tag: ""  # Defaults to appVersion
+    pullPolicy: IfNotPresent
+  
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  
+  # eBPF requires privileged mode
+  securityContext:
+    privileged: true
+    capabilities:
+      add:
+        - SYS_ADMIN
+        - NET_ADMIN
+        - BPF
+  
+  # Mount required paths for eBPF
+  extraVolumeMounts:
+    - name: cgroup
+      mountPath: /sys/fs/cgroup
+      readOnly: true
+    - name: bpf
+      mountPath: /sys/fs/bpf
+  
+  extraVolumes:
+    - name: cgroup
+      hostPath:
+        path: /sys/fs/cgroup
+    - name: bpf
+      hostPath:
+        path: /sys/fs/bpf
+  
+  config:
+    collectorEndpoint: "egressor-collector:4317"
+    clusterCIDRs:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+    exportInterval: "30s"
+
+# Collector configuration
+collector:
+  enabled: true
+  replicaCount: 2
+  
+  image:
+    repository: egressor/collector
+    tag: ""
+    pullPolicy: IfNotPresent
+  
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  
+  service:
+    type: ClusterIP
+    grpcPort: 4317
+    httpPort: 8080
+  
+  config:
+    batchSize: 10000
+    flushInterval: "5s"
+
+# API configuration
+api:
+  enabled: true
+  replicaCount: 2
+  
+  image:
+    repository: egressor/api
+    tag: ""
+    pullPolicy: IfNotPresent
+  
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  
+  service:
+    type: ClusterIP
+    httpPort: 8080
+    grpcPort: 9090
+  
+  ingress:
+    enabled: false
+    className: nginx
+    annotations: {}
+    hosts:
+      - host: egressor.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  
+  config:
+    corsOrigins:
+      - "http://localhost:3000"
+
+# Frontend configuration
+frontend:
+  enabled: true
+  replicaCount: 1
+  
+  image:
+    repository: egressor/frontend
+    tag: ""
+    pullPolicy: IfNotPresent
+  
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  
+  service:
+    type: ClusterIP
+    port: 3000
+  
+  ingress:
+    enabled: false
+    className: nginx
+    annotations: {}
+    hosts:
+      - host: egressor.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+
+# Claude integration
+claude:
+  enabled: false
+  apiKeySecret: "egressor-claude"
+  apiKeySecretKey: "api-key"
+  model: "claude-sonnet-4-20250514"
+
+# ClickHouse (dependency)
+clickhouse:
+  enabled: true
+  auth:
+    username: default
+    password: egressor
+  persistence:
+    enabled: true
+    size: 50Gi
+
+# PostgreSQL (dependency)
+postgresql:
+  enabled: true
+  auth:
+    username: egressor
+    password: egressor
+    database: egressor
+  persistence:
+    enabled: true
+    size: 10Gi
+
+# Redis (dependency)
+redis:
+  enabled: true
+  auth:
+    enabled: false
+  persistence:
+    enabled: true
+    size: 5Gi
+
+# Prometheus ServiceMonitor
+serviceMonitor:
+  enabled: false
+  interval: 30s
+  labels: {}
