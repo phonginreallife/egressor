@@ -106,23 +106,6 @@ open http://localhost:3000
 └───────────────────────────────────────────────────────────────┘
 ```
 
-## Project Structure
-
-```
-egressor/
-├── src/                      # Go Backend
-│   ├── cmd/                  # Entrypoints (agent, collector, api)
-│   ├── ebpf/                 # eBPF C programs
-│   ├── pkg/                  # Public Go packages
-│   ├── internal/             # Private Go packages
-│   └── intelligence/         # Python Claude service
-├── frontend/                 # Next.js dashboard
-├── deploy/                   # Docker Compose, Helm
-├── scripts/                  # Utilities
-├── go.mod
-└── Makefile
-```
-
 ## API
 
 ### Graph
