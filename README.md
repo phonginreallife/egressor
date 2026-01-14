@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="images/egressor.png" alt="Egressor Dashboard" width="800"/>
-</p>
-
 <h1 align="center">Egressor</h1>
 
 <p align="center">
@@ -16,6 +12,11 @@
   <a href="#api">API</a> •
   <a href="#configuration">Configuration</a>
 </p>
+
+<p align="center">
+  <img src="images/egressor.png" alt="Egressor Dashboard" width="800"/>
+</p>
+
 
 ---
 
