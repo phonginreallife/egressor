@@ -35,7 +35,7 @@ Cloud egress bills are unpredictable. Services talk to each other in ways you di
 | Feature | Description |
 |---------|-------------|
 | **eBPF Traffic Collection** | Zero-overhead kernel-level flow capture |
-| **Real-time Visualization** | Live transfer graph with 2-second updates |
+| **Real-time Visualization** | Live transfer graph  |
 | **Cost Attribution** | Map traffic → AWS pricing → workload |
 | **Anomaly Detection** | Automatic spike, slow-burn, and leak detection |
 | **Claude AI Analysis** | Natural language investigation and optimization |
